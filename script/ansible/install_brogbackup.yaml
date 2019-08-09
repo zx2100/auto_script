@@ -1,0 +1,15 @@
+---
+- name: Install BorgBackup
+  hosts: text
+  remote_user: root
+  serial: 1
+
+  vars:
+    - borg_passphrase: CHANGE_ME
+    - borg_host_user: username
+    - borg_host_addr: backup.example.org
+    - borg_host_key: "backup.example.org ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+  roles:
+    - role: borg
+

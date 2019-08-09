@@ -1,0 +1,77 @@
+---
+- hosts: text
+  remote_user: root
+  serial: 3
+  vars:
+    local_key_dir: "/root/file/local_login.py"
+    remote_script_dir: "/root/ansible/script/python/local_login.py"
+    env_dir: "/root/file"
+    env_source_dir: /root/python/env
+  tasks:
+    - name: Cteate temp Dir
+      file:
+        path: "/root/file"
+        state: directory
+        owner: root
+        group: root
+    - name: Fix Debian Python
+      apt:
+        name: python3-venv
+      when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+    - name: Create temp venv
+      command: "/usr/bin/python3 -m venv /root/python/env"
+      args:
+        creates: "/root/python/env/bin/pip"
+      when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+    - name: Fix Centos Python
+      yum:
+        name: python-pip
+        state: present
+      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+    - name: Fix Centos Python-env
+      yum:
+        name: python-virtualenv
+        state: present
+      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+    - name: Create temp venv with Centos
+      shell: "/usr/bin/virtualenv  /root/python/env" 
+      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+    # - name: install temp venv
+    #   pip:
+    #     name: virtualenv
+    #     state: present
+
+    # - name: install temp venv
+    #   shell: "/usr/bin/python -m venv /root/python/env"
+    # #   args:
+    # #     creates: "/root/python/env/bin/pip
+    # - name: Create temp venv
+    #   command: "/usr/bin/virtualenv -m venv /root/python/env"
+    #   args:
+    #     creates: "/root/python/env/bin/pip"
+
+    - name: Install pexpect for init
+      pip:
+        name: pexpect
+        executable: "/root/python/env/bin/pip"
+    # - name: copy env
+    #   copy:
+    #     src: "{{ env_source_dir }}"
+    #     dest: '{{ env_dir }}'
+
+    - name: copy tall Local Key script
+      copy:
+        src: '{{ remote_script_dir }}'
+        dest: '{{ local_key_dir }}'
+        owner: root
+        group: root
+        mode: 0744
+
+
+    - name: Install Local Key
+      shell: "{{ env_source_dir }}/bin/python {{ local_key_dir }}"

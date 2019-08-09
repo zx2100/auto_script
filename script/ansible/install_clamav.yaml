@@ -1,0 +1,124 @@
+---
+- hosts: text
+  remote_user: root
+  serial: 3
+  tasks:
+
+    - name: Install ClamAV dependencies       
+      package: 
+        name: "{{ item }}"        
+        state: present
+      with_items:
+        - build-essential
+        - openssl
+        - libssl-dev
+        - libcurl4-openssl-dev
+        - zlib1g-dev
+        - libpng-dev
+        - libxml2-dev
+        - libjson-c-dev
+        - libbz2-dev
+        - libpcre3-dev
+        - ncurses-dev
+        
+    - name: Create User
+      user: 
+        name: clamav
+        shell: /bin/nologin
+        createhome: no
+       
+
+    - name: Create temporary directory 
+      file: 
+        path: "{{ item }}"
+        state: directory   
+        group: clamav
+        mode: 0775
+      with_items:
+        - /root/file/   
+        - /usr/local/clamAV/logs
+        - /usr/local/clamAV/updata
+     
+    - name: Create temporary file
+      file:
+        path: "{{ item }}"
+        state: touch
+        group: clamav
+        mode: 0664  
+      with_items:
+        - /usr/local/clamAV/logs/clamd.log
+        - /usr/local/clamAV/logs/freshclam.log
+        
+    - name: Copy file
+      copy:
+        src: '/root/ansible/script/file/clamav-0.101.2.tar.gz'
+        dest: '/root/file/clamav-0.101.2.tar.gz'
+        owner: root
+        group: root
+        mode: 0664
+      remote_user: root
+
+    - name: Copy clamd configuration
+      copy:
+        src: '/root/ansible/script/file/clamd.conf'
+        dest: '/etc/clamd.conf' 
+        owner: root
+        group: clamav
+        mode: 0664
+
+    - name: Copy freshclam configuration
+      copy:
+        src: '/root/ansible/script/file/freshclam.conf.sample'
+        dest: '/etc/freshclam.conf' 
+        owner: root
+        group: clamav
+        mode: 0664
+
+    - name: uncompress
+      unarchive:
+        src: '/root/file/clamav-0.101.2.tar.gz'
+        dest: '/root/file/'
+        remote_src: yes
+
+    - name: Determine install or not
+      shell: '/usr/bin/find /usr/local/clamAV/ -name clamscan'
+      register: install_result
+      tags:  install
+
+    - name: Install
+      shell: 'cd /root/file/clamav-0.101.2 && ./configure --sysconfdir=/etc  --prefix=/usr/local/clamAV && make -j2 && make install'
+      tags: install
+      when: install_result.stdout_lines  == []
+
+    - name: Determine set_env or not
+      shell: '/usr/bin/find /etc/profile.d/ -name clamav.sh'
+      register: set_env_result
+      tags:  set_env_result
+
+    - name: Set env
+      shell: 'echo "export PATH=/usr/local/clamAV/bin:$PATH" > /etc/profile.d/clamav.sh && /bin/chmod 750 /etc/profile.d/clamav.sh && /etc/profile.d/clamav.sh'
+      when:   set_env_result.stdout_lines  == []
+
+
+    - name: Update the signature database
+      shell: '/usr/local/clamAV/bin/freshclam'
+
+    - name: Set update task
+      cron:
+        name: "update task"
+        user: root
+        hour: "1"
+        state: present  
+        job: "/usr/local/clamAV/bin/freshclam"
+      tags: tasks
+    
+    - name: Set scan task
+      cron:
+        name: "scan task"
+        user: root
+        hour: "1"
+        state: present  
+        job: "/usr/local/clamAV/bin/clamscan --infected -r / --remove -l /var/log/clamscan.log"
+      tags: tasks
+
+

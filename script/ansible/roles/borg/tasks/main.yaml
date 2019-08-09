@@ -1,0 +1,108 @@
+# - name: Download Borg binary
+#   get_url:
+#     url: "{{ borg_url }}"
+#     dest: "{{ borg_path }}"
+#     mode: 0755
+---
+- name: Copy File
+  copy:
+    src: '/root/ansible/script/file/borg-linux64'
+    dest: "{{ borg_path }}"
+    owner: root
+    group: root
+    mode: 0755
+
+
+
+- name: Fix broken Python
+  apt:
+    name: python3-venv
+  when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+- name: Create Borgmatic venv
+  command: "python3 -m venv {{ borgmatic_dir }}"
+  args:
+    creates: "{{ borgmatic_dir }}/bin/pip"
+  when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+
+
+- name: Create temp venv with Centos
+  shell: "/usr/bin/virtualenv  {{ borgmatic_dir }}" 
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+
+- name: Install Borgmatic into venv
+  pip:
+    name: borgmatic
+    version: "{{ borgmatic_version }}"
+    executable: "{{ borgmatic_dir }}/bin/pip"
+
+
+- name: Create Borgmatic config dir
+  file:
+    path: /etc/borgmatic
+    state: directory
+
+- name: Create Borgmatic excludes file
+  command: touch /etc/borgmatic/excludes
+  args:
+    creates: /etc/borgmatic/excludes
+    warn: no
+
+- name: Create Borgmatic excludes file link
+  file: 
+    path: /usr/local/bin/borgmatic
+    src: "/usr/local/borgmatic/bin/borgmatic"
+    state: link 
+  tags: link
+
+- name: Create Backup dir
+  file:
+    path: /backup
+    state: directory
+    owner: root
+    group: root
+
+
+- name: Render Borgmatic config
+  template:
+    src: borgmatic-config.yaml.j2
+    dest: /etc/borgmatic/config.yaml
+    mode: 0600
+  tags: text1
+
+
+
+
+- name: Render Borgmatic systemd units
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+  with_items:
+    - borgmatic.service
+    - borgmatic.timer
+
+
+- name: Init Database
+  shell: "/usr/local/bin/borgmatic init --encryption none"
+
+
+- name: Set timer Task
+  cron:
+    name: "backup task"
+    user: root
+    hour: "1"
+    state: present  
+    job: "/usr/local/bin/borgmatic -v 1"
+
+
+# - name: Enable Borgmatic systemd timer
+#   systemd:
+#     name: borgmatic.timer
+#     state: started
+#     enabled: yes
+#     daemon_reload: yes
+#
+#- import_tasks: pubkey.yaml
+#  when: borg_setup_pubkey
