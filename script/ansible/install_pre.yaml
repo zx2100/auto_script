@@ -20,16 +20,22 @@
       - name: 安装python3-venv
         apt:
           name: python3-venv
+          state: present
  
       - name: 创建虚拟环境目录
         command: "/usr/bin/python3 -m venv /root/python/env"
         args:
           creates: "/root/python/env/bin/pip"
 
+      - name: 安装python-setuptools
+        apt:
+          name: python-setuptools
+          state: present
+          
       - name: Pip安装 pexpect 
         pip:
           name: pexpect
-          executable: "/root/python/env/bin/pip"
+          executable: "/root/python/env/bin/pip3"
       when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
    

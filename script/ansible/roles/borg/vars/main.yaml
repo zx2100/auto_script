@@ -6,7 +6,7 @@ borgmatic_version: "1.3.13"
 borgmatic_dir: /usr/local/borgmatic
 borgmatic_path: /usr/local/borgmatic/bin/borgmatic
 
-#borg_passphrase: "YourRandomGeneratedPassphraseHere"
+borg_passphrase: "None"
 borg_backup_dirs:
   - /root
   - /etc

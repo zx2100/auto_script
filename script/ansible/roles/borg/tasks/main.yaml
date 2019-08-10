@@ -23,7 +23,7 @@
 
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
-# -------------------Centos的安装方法---------------
+# -------------------Centos部分---------------
 # /usr/local/borgmatic
 # Centos 需要PYTHON3才能运行borgmatic
 - block:
