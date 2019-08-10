@@ -1,14 +1,15 @@
+# 如果你想自定义此角色的代码，请查看当前目录下roles/brog/tasks/main.yaml
 ---
 - name: Install BorgBackup
   hosts: text
   remote_user: root
   serial: 1
 
-  vars:
-    - borg_passphrase: CHANGE_ME
-    - borg_host_user: username
-    - borg_host_addr: backup.example.org
-    - borg_host_key: "backup.example.org ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  # vars:
+  #   - borg_passphrase: CHANGE_ME
+  #   - borg_host_user: username
+  #   - borg_host_addr: backup.example.org
+  #   - borg_host_key: "backup.example.org ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
   roles:
     - role: borg

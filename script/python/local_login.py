@@ -1,5 +1,5 @@
 #!/root/python/env/bin/python
-
+#coding=utf-8
 import pexpect
 
 def main():

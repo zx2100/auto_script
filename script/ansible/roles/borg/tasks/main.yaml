@@ -1,10 +1,6 @@
-# - name: Download Borg binary
-#   get_url:
-#     url: "{{ borg_url }}"
-#     dest: "{{ borg_path }}"
-#     mode: 0755
+
 ---
-- name: Copy File
+- name: 复制文件
   copy:
     src: '/root/ansible/script/file/borg-linux64'
     dest: "{{ borg_path }}"
@@ -13,51 +9,56 @@
     mode: 0755
 
 
+ #/usr/local/borgmatic
+# -------------------Debian部分---------------
+# - name: Fix broken Python
+#   apt:
+#     name: python3-venv
+#   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+- block:
+  - name: 创建Borgmatic虚拟环境（Debian）
+    command: "python3 -m venv {{ borgmatic_dir }}"
+    args:
+      creates: "{{ borgmatic_dir }}/bin/pip"
 
-- name: Fix broken Python
-  apt:
-    name: python3-venv
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
-- name: Create Borgmatic venv
-  command: "python3 -m venv {{ borgmatic_dir }}"
-  args:
-    creates: "{{ borgmatic_dir }}/bin/pip"
-  when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
-
-
-
-- name: Create temp venv with Centos
-  shell: "/usr/bin/virtualenv  {{ borgmatic_dir }}" 
+# -------------------Centos的安装方法---------------
+# /usr/local/borgmatic
+# Centos 需要PYTHON3才能运行borgmatic
+- block:
+  - name: 创建Borgmatic虚拟环境（CentOS）
+    shell: "/usr/bin/virtualenv-3  {{ borgmatic_dir }}" 
   when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
 
 
-- name: Install Borgmatic into venv
+#------------------公共部分-------------
+- name: 在虚拟环境安装Borgmatic
   pip:
     name: borgmatic
     version: "{{ borgmatic_version }}"
     executable: "{{ borgmatic_dir }}/bin/pip"
 
 
-- name: Create Borgmatic config dir
+- name: 创建Borgmatic配置目录
   file:
     path: /etc/borgmatic
     state: directory
 
-- name: Create Borgmatic excludes file
+- name: 创建Borgmatic临时文件
   command: touch /etc/borgmatic/excludes
   args:
     creates: /etc/borgmatic/excludes
     warn: no
 
-- name: Create Borgmatic excludes file link
+- name: 创建Borgmatic执行文件链接
   file: 
     path: /usr/local/bin/borgmatic
     src: "/usr/local/borgmatic/bin/borgmatic"
     state: link 
   tags: link
 
-- name: Create Backup dir
+- name: 创建备份目录
   file:
     path: /backup
     state: directory
@@ -65,7 +66,7 @@
     group: root
 
 
-- name: Render Borgmatic config
+- name: 渲染Borgmatic配置文件
   template:
     src: borgmatic-config.yaml.j2
     dest: /etc/borgmatic/config.yaml
@@ -75,7 +76,7 @@
 
 
 
-- name: Render Borgmatic systemd units
+- name: 渲染Borgmatic systemd units
   template:
     src: "{{ item }}.j2"
     dest: "/etc/systemd/system/{{ item }}"
@@ -84,11 +85,11 @@
     - borgmatic.timer
 
 
-- name: Init Database
+- name: 初始化数据库
   shell: "/usr/local/bin/borgmatic init --encryption none"
 
 
-- name: Set timer Task
+- name: 设置定时任务
   cron:
     name: "backup task"
     user: root

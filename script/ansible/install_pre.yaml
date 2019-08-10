@@ -8,63 +8,67 @@
     env_dir: "/root/file"
     env_source_dir: /root/python/env
   tasks:
-    - name: Cteate temp Dir
+    - name: 创建临时目录
       file:
         path: "/root/file"
         state: directory
         owner: root
         group: root
-    - name: Fix Debian Python
+#-----------------------------Debian部分----------------
+    - block:
+      - name: 安装python3-venv
       apt:
         name: python3-venv
       when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
-    - name: Create temp venv
-      command: "/usr/bin/python3 -m venv /root/python/env"
-      args:
-        creates: "/root/python/env/bin/pip"
+      - name: 创建虚拟环境目录
+        command: "/usr/bin/python3 -m venv /root/python/env"
+        args:
+          creates: "/root/python/env/bin/pip"
+      - name: Pip安装 pexpect 
+        pip:
+          name: pexpect
+          executable: "/root/python/env/bin/pip"
       when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
-    - name: Fix Centos Python
-      yum:
-        name: python-pip
-        state: present
-      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+   
+#---------------------------------Centos部分---------------------
+    - block:
+      - name: 安装EPEL源
+        yum:
+          name: epel-release
+          state: present
+          update_cache: yes
+      
+      - name: 安装python3.6
+        yum:
+          name: python36
+          state: present
 
-    - name: Fix Centos Python-env
-      yum:
-        name: python-virtualenv
-        state: present
-      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+      - name: 安装python36-pip
+        yum:
+          name: python36-pip
+          state: present
+  
+      - name: 安装 Python-env
+        yum:
+          name: python36-virtualenv
+          state: present
+      - name: 创建虚拟环境
+        shell: "/usr/bin/virtualenv-3  /root/python/env" 
 
-    - name: Create temp venv with Centos
-      shell: "/usr/bin/virtualenv  /root/python/env" 
-      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+      - name: Pip安装 pexpect 
+        pip:
+          name: pexpect
+          executable: "/root/python/env/bin/pip"
+    when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+    
 
-    # - name: install temp venv
-    #   pip:
-    #     name: virtualenv
-    #     state: present
 
-    # - name: install temp venv
-    #   shell: "/usr/bin/python -m venv /root/python/env"
-    # #   args:
-    # #     creates: "/root/python/env/bin/pip
-    # - name: Create temp venv
-    #   command: "/usr/bin/virtualenv -m venv /root/python/env"
-    #   args:
-    #     creates: "/root/python/env/bin/pip"
+   
+#----------------------公共------------
 
-    - name: Install pexpect for init
-      pip:
-        name: pexpect
-        executable: "/root/python/env/bin/pip"
-    # - name: copy env
-    #   copy:
-    #     src: "{{ env_source_dir }}"
-    #     dest: '{{ env_dir }}'
-
-    - name: copy tall Local Key script
+    - name: 复制脚本到目标主机
       copy:
         src: '{{ remote_script_dir }}'
         dest: '{{ local_key_dir }}'
@@ -73,5 +77,5 @@
         mode: 0744
 
 
-    - name: Install Local Key
+    - name: 执行本地密钥安装
       shell: "{{ env_source_dir }}/bin/python {{ local_key_dir }}"
