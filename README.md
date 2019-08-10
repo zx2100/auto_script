@@ -1,7 +1,7 @@
 # 测试情况：
 1. Centos7-minimal：成功
 2. Centos6-minimal: 成功
-3. Debian9-Gnome桌面环境：成功
+3. Debian9-minimal：成功
 
 > 脚本是串行执行的，一台一台依次执行，可以多找几台跳板机把500台分成N批，这样会快好多
 

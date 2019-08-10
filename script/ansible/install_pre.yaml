@@ -16,15 +16,16 @@
         group: root
 #-----------------------------Debian部分----------------
     - block:
-      - name: 安装python3-venv
-      apt:
-        name: python3-venv
-      when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
+      - name: 安装python3-venv
+        apt:
+          name: python3-venv
+ 
       - name: 创建虚拟环境目录
         command: "/usr/bin/python3 -m venv /root/python/env"
         args:
           creates: "/root/python/env/bin/pip"
+
       - name: Pip安装 pexpect 
         pip:
           name: pexpect
@@ -54,6 +55,7 @@
         yum:
           name: python36-virtualenv
           state: present
+
       - name: 创建虚拟环境
         shell: "/usr/bin/virtualenv-3  /root/python/env" 
 
@@ -61,7 +63,8 @@
         pip:
           name: pexpect
           executable: "/root/python/env/bin/pip"
-    when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
     
 
 
