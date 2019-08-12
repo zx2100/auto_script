@@ -49,42 +49,56 @@
           gpgcheck: no
 
 
-      - name: 安装EPEL源
+      - name: 安装EPEL第三方源
         package:
           name: '{{ item }}'
           state: present
           update_cache: yes
         with_items:
           - epel-release
+          - "https://centos7.iuscommunity.org/ius-release.rpm"
+
+
+      # - name: python34环境
+      #   package:
+      #     name: '{{ item }}'
+      #     state: present
+      #     update_cache: yes
+      #   with_items:
+      #     - python34
+      #     - python34-pip
+      #     - python34-virtualenv
+      #     - python-setuptools
           
-
-
-      - name: python34环境
+      - name: python36环境
         package:
           name: '{{ item }}'
           state: present
           update_cache: yes
         with_items:
-          - python34
-          - python34-pip
-          - python34-virtualenv
+          - python36u
+          - python36u-pip
           - python-setuptools
           
+      # - name: 创建虚拟环境
+      #   command: "/usr/bin/virtualenv-3.4  /root/python/env"
+      #   args:
+      #     creates: "/root/python/env"
+      - name: 安装virtualenv
+        pip:
+          name: virtualenv 
+          executable: "/usr/bin/pip3.6"
+
       - name: 创建虚拟环境
-        command: "/usr/bin/virtualenv-3.4  /root/python/env"
+        command: "/usr/bin/virtualenv -p /bin/python3.6 /root/python/env"
         args:
           creates: "/root/python/env"
-        # shell: "/usr/bin/virtualenv-3.4  /root/python/env" 
-
-      # - name: Pip安装SetupTools
-      #   pip:
-      #     name: python-setuptools
-      #     executable: "/root/python/env/bin/pip"
 
       - name: Pip安装 pexpect 
         pip:
           name: pexpect
           executable: "/root/python/env/bin/pip"
+
 
       when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
     

@@ -7,6 +7,7 @@
 
 if [ $? != 0 ]
 then
+    yum makecache
     yum install -y python-pip
     if [ $? == 0 ]
     then

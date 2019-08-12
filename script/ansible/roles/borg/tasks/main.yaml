@@ -20,15 +20,36 @@
     command: "python3 -m venv {{ borgmatic_dir }}"
     args:
       creates: "{{ borgmatic_dir }}/bin/pip"
+      
+  # - name: 在虚拟环境安装Borgmatic
+  #   pip:
+  #     name: borgmatic
+  #     version: "{{ borgmatic_version }}"
+  #     executable: "{{ borgmatic_dir }}/bin/pip"
+
 
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
 # -------------------Centos部分---------------
 # /usr/local/borgmatic
 # Centos 需要PYTHON3才能运行borgmatic
+  # - name: 创建虚拟环境
+  #       command: "/usr/bin/virtualenv-3.4  /root/python/env"
+  #       args:
+  #         creates: "/root/python/env"
 - block:
   - name: 创建Borgmatic虚拟环境（CentOS）
-    shell: "/usr/bin/virtualenv-3.4  {{ borgmatic_dir }}" 
+    command: "/usr/bin/virtualenv -p /bin/python3.6  {{ borgmatic_dir }}" 
+    args:
+      creates: "{{ borgmatic_dir }}"
+
+  # - name: 在虚拟环境安装Borgmatic
+  #   pip:
+  #     name: borgmatic
+  #     version: "{{ borgmatic_version }}"
+  #     executable: "{{ borgmatic_dir }}/bin/pip"
+
+
   when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
 
 
@@ -38,7 +59,6 @@
     name: borgmatic
     version: "{{ borgmatic_version }}"
     executable: "{{ borgmatic_dir }}/bin/pip"
-
 
 - name: 创建Borgmatic配置目录
   file:
