@@ -41,29 +41,45 @@
    
 #---------------------------------Centos部分---------------------
     - block:
+      - name: 添加python34-devel依赖仓库
+        yum_repository:
+          name: tbi.EPEL7.repo
+          description: home:tbi:EPEL7 (CentOS_7)
+          baseurl: http://download.opensuse.org/repositories/home:/tbi:/EPEL7/CentOS_7/
+          gpgcheck: no
+
+
       - name: 安装EPEL源
-        yum:
-          name: epel-release
+        package:
+          name: '{{ item }}'
           state: present
           update_cache: yes
-      
-      - name: 安装python3.6
-        yum:
-          name: python36
-          state: present
+        with_items:
+          - epel-release
+          
 
-      - name: 安装python36-pip
-        yum:
-          name: python36-pip
-          state: present
-  
-      - name: 安装 Python-env
-        yum:
-          name: python36-virtualenv
-          state: present
 
+      - name: python34环境
+        package:
+          name: '{{ item }}'
+          state: present
+          update_cache: yes
+        with_items:
+          - python34
+          - python34-pip
+          - python34-virtualenv
+          - python-setuptools
+          
       - name: 创建虚拟环境
-        shell: "/usr/bin/virtualenv-3  /root/python/env" 
+        command: "/usr/bin/virtualenv-3.4  /root/python/env"
+        args:
+          creates: "/root/python/env"
+        # shell: "/usr/bin/virtualenv-3.4  /root/python/env" 
+
+      # - name: Pip安装SetupTools
+      #   pip:
+      #     name: python-setuptools
+      #     executable: "/root/python/env/bin/pip"
 
       - name: Pip安装 pexpect 
         pip:

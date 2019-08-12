@@ -28,7 +28,7 @@
 # Centos 需要PYTHON3才能运行borgmatic
 - block:
   - name: 创建Borgmatic虚拟环境（CentOS）
-    shell: "/usr/bin/virtualenv-3  {{ borgmatic_dir }}" 
+    shell: "/usr/bin/virtualenv-3.4  {{ borgmatic_dir }}" 
   when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
 
 
