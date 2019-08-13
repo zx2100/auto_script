@@ -21,44 +21,35 @@
     args:
       creates: "{{ borgmatic_dir }}/bin/pip"
       
-  # - name: 在虚拟环境安装Borgmatic
-  #   pip:
-  #     name: borgmatic
-  #     version: "{{ borgmatic_version }}"
-  #     executable: "{{ borgmatic_dir }}/bin/pip"
+  - name: 在虚拟环境安装Borgmatic
+    pip:
+      name: borgmatic
+      version: "1.3.5"
+      executable: "{{ borgmatic_dir }}/bin/pip"
 
 
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
 # -------------------Centos部分---------------
-# /usr/local/borgmatic
-# Centos 需要PYTHON3才能运行borgmatic
-  # - name: 创建虚拟环境
-  #       command: "/usr/bin/virtualenv-3.4  /root/python/env"
-  #       args:
-  #         creates: "/root/python/env"
+
 - block:
   - name: 创建Borgmatic虚拟环境（CentOS）
     command: "/usr/bin/virtualenv -p /bin/python3.6  {{ borgmatic_dir }}" 
     args:
       creates: "{{ borgmatic_dir }}"
 
-  # - name: 在虚拟环境安装Borgmatic
-  #   pip:
-  #     name: borgmatic
-  #     version: "{{ borgmatic_version }}"
-  #     executable: "{{ borgmatic_dir }}/bin/pip"
-
+  
+  - name: 在虚拟环境安装Borgmatic
+    pip:
+      name: borgmatic
+      version: "{{ borgmatic_version }}"
+      executable: "{{ borgmatic_dir }}/bin/pip"
 
   when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
 
 
 #------------------公共部分-------------
-- name: 在虚拟环境安装Borgmatic
-  pip:
-    name: borgmatic
-    version: "{{ borgmatic_version }}"
-    executable: "{{ borgmatic_dir }}/bin/pip"
+
 
 - name: 创建Borgmatic配置目录
   file:
@@ -105,8 +96,13 @@
     - borgmatic.timer
 
 
-# - name: 初始化数据库
-#   shell: "/usr/local/bin/borgmatic init --encryption none"
+
+- name: 初始化数据库
+  shell: "/usr/local/bin/borgmatic init --encryption none"
+  args:
+    creates: "/backup/{{ ansible_nodename }}.borg"
+    executable: "/bin/bash"
+
 
 - name: 设置定时任务
   cron:
@@ -115,7 +111,6 @@
     hour: "1"
     state: present  
     job: "/usr/local/bin/borgmatic -v 1"
-
 
 # - name: Enable Borgmatic systemd timer
 #   systemd:
