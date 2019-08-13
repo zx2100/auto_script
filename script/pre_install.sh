@@ -24,4 +24,4 @@ fi
 
 
 # 导入包
-/usr/bin/pip install -r /root/ansible/packages.txt
+/usr/bin/pip install --ignore-installed -r /root/ansible/packages.txt

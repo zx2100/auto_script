@@ -105,9 +105,8 @@
     - borgmatic.timer
 
 
-- name: 初始化数据库
-  shell: "/usr/local/bin/borgmatic init --encryption none"
-
+# - name: 初始化数据库
+#   shell: "/usr/local/bin/borgmatic init --encryption none"
 
 - name: 设置定时任务
   cron:
