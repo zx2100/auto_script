@@ -97,11 +97,19 @@
 
 
 
-- name: 初始化数据库
+- name: 初始化数据库(Centos)
   shell: "/usr/local/bin/borgmatic init --encryption none"
   args:
     creates: "/backup/{{ ansible_nodename }}.borg"
     executable: "/bin/bash"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+
+- name: 初始化数据库(Debian)
+  shell: "/usr/local/bin/borgmatic --init --encryption none"
+  args:
+    creates: "/backup/{{ ansible_nodename }}.borg"
+    executable: "/bin/bash"
+  when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
 
 - name: 设置定时任务
