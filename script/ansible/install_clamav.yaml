@@ -121,7 +121,7 @@
 
 
     - name: 更新病毒库
-      shell: '/usr/local/clamAV/bin/freshclam'
+      command: '/usr/local/clamAV/bin/freshclam'
 
     - name: 设置定时更新任务
       cron:
