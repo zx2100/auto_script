@@ -5,6 +5,8 @@
   vars:
     local_key_dir: "/root/file/local_login.py"
     remote_script_dir: "/root/ansible/script/python/local_login.py"
+    centos6_ius: "/root/ansible/script/file/ius-release-el6.rpm"
+    centos6_ius_dest: "/root/file/ius-release-el6.rpm"
     env_dir: "/root/file"
     env_source_dir: /root/python/env
   tasks:
@@ -41,15 +43,15 @@
    
 #---------------------------------Centos部分---------------------
     - block:
-      - name: 添加python34-devel依赖仓库
+      - name: 添加python36-devel依赖仓库(Centos7)
         yum_repository:
           name: tbi.EPEL7.repo
           description: home:tbi:EPEL7 (CentOS_7)
           baseurl: http://download.opensuse.org/repositories/home:/tbi:/EPEL7/CentOS_7/
           gpgcheck: no
+        when: ansible_distribution_major_version == "7"
 
-
-      - name: 安装EPEL第三方源
+      - name: 安装EPEL第三方源(Centos7)
         package:
           name: '{{ item }}'
           state: present
@@ -57,6 +59,28 @@
         with_items:
           - epel-release
           - "https://centos7.iuscommunity.org/ius-release.rpm"
+        when: ansible_distribution_major_version == "7"
+      
+      #本地安装依赖源
+      - name: 复制依赖源
+        copy:
+          src: '{{ centos6_ius }}'
+          dest: '{{ centos6_ius_dest }}'
+          owner: root
+          group: root
+          mode: 0744
+
+      - name: 安装EPEL第三方源(Centos6)
+        package:
+          name: '{{ item }}'
+          state: present
+          update_cache: yes
+          validate_certs: no
+        with_items:
+          - epel-release
+          - "{{ centos6_ius_dest }}"
+        when: ansible_distribution_major_version == "6"
+
 
 
       # - name: python34环境
