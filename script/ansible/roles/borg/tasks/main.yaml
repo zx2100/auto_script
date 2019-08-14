@@ -94,6 +94,7 @@
   with_items:
     - borgmatic.service
     - borgmatic.timer
+  when: (ansible_distribution == "CentOS" and not ansible_distribution_major_version == "6") or (ansible_distribution == "Red Hat Enterprise Linux" and not ansible_distribution_major_version == "6") or (ansible_distribution == "Ubuntu") or (ansible_distribution == "Debian")
 
 
 

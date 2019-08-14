@@ -83,17 +83,6 @@
 
 
 
-      # - name: python34环境
-      #   package:
-      #     name: '{{ item }}'
-      #     state: present
-      #     update_cache: yes
-      #   with_items:
-      #     - python34
-      #     - python34-pip
-      #     - python34-virtualenv
-      #     - python-setuptools
-          
       - name: python36环境
         package:
           name: '{{ item }}'
@@ -113,10 +102,18 @@
           name: virtualenv 
           executable: "/usr/bin/pip3.6"
 
+      - name: 创建Borgmatic执行文件链接(Centos6)
+        file: 
+          path: /bin/python3.6
+          src: "/usr/bin/python3.6"
+          state: link 
+        when: ansible_distribution_major_version == "6"
+
       - name: 创建虚拟环境
         command: "/usr/bin/virtualenv -p /bin/python3.6 /root/python/env"
         args:
           creates: "/root/python/env"
+
 
       - name: Pip安装 pexpect 
         pip:
