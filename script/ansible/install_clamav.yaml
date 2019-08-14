@@ -21,7 +21,9 @@
         - ncurses-dev
       when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
-    - name: 安装ClamAV依赖（Centos）   
+
+
+    - name: 安装ClamAV依赖 
       package: 
         name: "{{ item }}"        
         state: present
@@ -35,9 +37,20 @@
         - libxml2-devel
         - json-c-devel
         - bzip2-devel
-        - pcre2-devel
         - ncurses-devel
-      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+      when: ansible_distribution == "CentOS"  or ansible_distribution == "Red Hat Enterprise Linux"
+
+    - name: 安装ClamAV额外依赖(Centos7)
+      package: 
+        name: "pcre2-devel"        
+        state: present
+      when: (ansible_distribution == "CentOS" and ansible_distribution_major_version == "7") or (ansible_distribution == "Red Hat Enterprise Linux" and ansible_distribution_major_version == "7")
+    
+    - name: 安装ClamAV额外依赖(Centos6)
+      package: 
+        name: "pcre-devel"        
+        state: present
+      when: (ansible_distribution == "CentOS" and ansible_distribution_major_version == "6") or (ansible_distribution == "Red Hat Enterprise Linux" and ansible_distribution_major_version == "6")
 
 #------------------公共部分---------------
 

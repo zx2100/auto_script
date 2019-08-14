@@ -112,7 +112,7 @@
       - name: 创建虚拟环境
         command: "/usr/bin/virtualenv -p /bin/python3.6 /root/python/env"
         args:
-          creates: "/root/python/env"
+          creates: "/root/python/env/bin/pip"
 
 
       - name: Pip安装 pexpect 
