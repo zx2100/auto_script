@@ -1,0 +1,7 @@
+---
+- hosts: text
+  remote_user: root
+  serial: 3
+  tasks:
+    - name: text
+      debug: var=ansible_facts

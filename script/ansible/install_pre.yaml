@@ -9,6 +9,9 @@
     centos6_ius_dest: "/root/file/ius-release-el6.rpm"
     env_dir: "/root/file"
     env_source_dir: /root/python/env
+    debian8_python36_src: "/root/ansible/script/file/python36.tar.xz"
+    debian8_python36_dest: "/root/file/"
+
   tasks:
     - name: 创建临时目录
       file:
@@ -17,8 +20,58 @@
         owner: root
         group: root
 #-----------------------------Debian部分----------------
+    #假如是Debian8则需要升级python3.6.
     - block:
+        - name: 安装Python3.6依赖（Debian8）   
+          package: 
+            name: "{{ item }}"        
+            state: present
+          with_items:
+            - build-essential
+            - libncurses5-dev
+            - libncursesw5-dev
+            - libreadline6-dev
+            - libdb5.3-dev
+            - libgdbm-dev
+            - libsqlite3-dev
+            - libssl-dev
+            - libbz2-dev
+            - libexpat1-dev
+            - liblzma-dev
+            - zlib1g-dev
+            - ca-certificates
+        
+        # - name: 修改2个软连接
+        #   command: /bin/ln /usr/lib/x86_64-linux-gnu/libssl.so.1.0.0 /usr/local/libssl.so
 
+        # - name: 修改2个软连接
+        #   command: /bin/ln /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /usr/local/libcrypto.so
+
+        # - name: 下载Python3.6源码包
+        #   command: /usr/bin/wget -P {{ debian8_python36_dest }} https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
+        #   args:
+        #     creates: "{{ debian8_python36_dest }}"
+
+        - name: 解压源码
+          unarchive:
+            src: "{{ debian8_python36_src }}"
+            dest: "{{ debian8_python36_dest }}"
+            
+        - name: 安装python36
+          command: cd /root/file/Python-3.6.4 && ./configure --prefix=/usr/local/python36 && make && make install 
+          args:
+            creates: "/usr/local/python36/bin/python3.6"
+
+        - name: 替换掉软连接
+          file:
+            path: "/usr/bin/python3"
+            src: "/usr/local/python36/bin/python3.6"
+            state: link
+
+      when: ansible_distribution == "Debian" and ansible_distribution_major_version == "8"
+
+
+    - block:
       - name: 安装python3-venv
         apt:
           name: python3-venv
@@ -39,6 +92,9 @@
           name: pexpect
           executable: "/root/python/env/bin/pip3"
       when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+
+
 
    
 #---------------------------------Centos部分---------------------

@@ -1,12 +1,24 @@
 
 ---
-- name: 复制文件
+# Debian 8 是32位系统
+- name: 复制文件（32位系统）
+  copy:
+    src: '/root/ansible/script/file/borg-linux32'
+    dest: "{{ borg_path }}"
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_userspace_architecture == "i386"
+
+- name: 复制文件（64位系统）
   copy:
     src: '/root/ansible/script/file/borg-linux64'
     dest: "{{ borg_path }}"
     owner: root
     group: root
     mode: 0755
+  when: ansible_userspace_architecture == "x86_64"
+    
 
 
  #/usr/local/borgmatic

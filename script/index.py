@@ -76,7 +76,6 @@ def uploadKey():
         if remote_result is False:
             fail_file.write(server_ip+"\n")
             continue
-
         # 添加本地的
         local_result = local_key_upload(server_passwd, "root", server_ip, server_port)
         if local_result == True:
@@ -86,37 +85,27 @@ def uploadKey():
                 success_file.write(server_ip+"\n")
             else:
                 fail_file.write(server_ip+"\n")
-
         else:
             fail_file.write(server_ip+"\n")
             
-
-
+        
 def play(playBook, task_name):
     global fail_file
     global success_file
     fail_file.write("*****%s任务失败主机*****\n" % (task_name))
     success_file.write("*****%s任务成功主机*****\n" % (task_name))
-   
-
     for host in hosts_list:
         try:
             host_split = host.split(" ")
         except Exception as e:
             pass
-        host_ip = host_split[0]
-        
+        host_ip = host_split[0]  
         result = start_play_book(host_ip, [playBook])
         if result != 0:
             fail_file.write(host_ip + "\n")
         else:
             success_file.write(host + "\n")
 
-    
-
-
-
-   
 
 def all_opt():
     uploadKey()
@@ -126,10 +115,10 @@ def all_opt():
 def menu():
     string = '''
         Hi，我能干以下事情
-        1. 为hosts.txt清单所指向的服务器安装密钥。（此步骤非常重要，跳板机密钥必须存在于服务器中，如果密钥已经存在，则可以跳过）
-        2. 安装BorgBackup并配置。（所有写在清单的服务器都会执行安装）
-        3. 安装clamAV安全软件并配置。（所有写在清单的服务器都会执行安装）
-        4. 一键完成所有(步骤1，2，3) 
+        1. 预安装 (此步骤非常重要，如果目标服务器执行过，则可以跳过)
+        2. 安装BorgBackup并配置 (所有写在清单的服务器都会执行安装)
+        3. 安装clamAV安全软件并配置 (所有写在清单的服务器都会执行安装)
+        4. 一键完成所有 (步骤1，2，3) 
         5. 退出
         '''
     print(string)
@@ -149,6 +138,8 @@ def menu():
         all_opt()
     elif opt == 5:
 	    exit()
+    elif opt == 6:
+        play("/root/ansible/script/ansible/test.yaml", "测试")
     else:
         print("我未理解你想进行什么操作？")
 
