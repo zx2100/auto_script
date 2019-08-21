@@ -3,6 +3,7 @@
   remote_user: root
   serial: 3
   vars:
+    src_base_dir: /root/ansible/script/file
     local_key_dir: "/root/file/local_login.py"
     remote_script_dir: "/root/ansible/script/python/local_login.py"
     centos6_ius: "/root/ansible/script/file/ius-release-el6.rpm"
@@ -22,6 +23,17 @@
 #-----------------------------Debian部分----------------
     #假如是Debian8则需要升级python3.6.
     - block:
+        - name: 替换163的镜像
+          copy: 
+            src: "{{ src_base_dir }}/sources.list"
+            dest: "/etc/apt/sources.list"
+        #更新源单独使用,。。。
+        - name: 更新源
+          apt:
+            update_cache: yes
+        # - name: 更新源
+        #   shell: /usr/bin/apt update && echo 1
+
         - name: 安装Python3.6依赖（Debian8）   
           package: 
             name: "{{ item }}"        
@@ -40,17 +52,6 @@
             - liblzma-dev
             - zlib1g-dev
             - ca-certificates
-        
-        # - name: 修改2个软连接
-        #   command: /bin/ln /usr/lib/x86_64-linux-gnu/libssl.so.1.0.0 /usr/local/libssl.so
-
-        # - name: 修改2个软连接
-        #   command: /bin/ln /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /usr/local/libcrypto.so
-
-        # - name: 下载Python3.6源码包
-        #   command: /usr/bin/wget -P {{ debian8_python36_dest }} https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
-        #   args:
-        #     creates: "{{ debian8_python36_dest }}"
 
         - name: 解压源码
           unarchive:
@@ -58,7 +59,7 @@
             dest: "{{ debian8_python36_dest }}"
             
         - name: 安装python36
-          command: cd /root/file/Python-3.6.4 && ./configure --prefix=/usr/local/python36 && make && make install 
+          shell: cd /root/file/Python-3.6.4 && ./configure --prefix=/usr/local/python36 && make && make install 
           args:
             creates: "/usr/local/python36/bin/python3.6"
 
@@ -78,9 +79,9 @@
           state: present
  
       - name: 创建虚拟环境目录
-        command: "/usr/bin/python3 -m venv /root/python/env"
+        shell: "/usr/bin/python3 -m venv /root/python/env"
         args:
-          creates: "/root/python/env/bin/pip"
+          creates: "/root/python/env/bin/pip3"
 
       - name: 安装python-setuptools
         apt:
@@ -107,11 +108,15 @@
           gpgcheck: no
         when: ansible_distribution_major_version == "7"
 
+      - name: 更新源
+        package:
+          update_cache: yes
+
       - name: 安装EPEL第三方源(Centos7)
         package:
           name: '{{ item }}'
           state: present
-          update_cache: yes
+          
         with_items:
           - epel-release
           - "https://centos7.iuscommunity.org/ius-release.rpm"
