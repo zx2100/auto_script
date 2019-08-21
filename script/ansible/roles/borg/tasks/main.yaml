@@ -29,9 +29,9 @@
 #   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 - block:
   - name: 创建Borgmatic虚拟环境（Debian）
-    command: "python3 -m venv {{ borgmatic_dir }}"
-    args:
-      creates: "{{ borgmatic_dir }}/bin/pip"
+    shell: "python3 -m venv {{ borgmatic_dir }}"
+    # args:
+    #   creates: "{{ borgmatic_dir }}/bin/pip"
       
   - name: 在虚拟环境安装Borgmatic
     pip:

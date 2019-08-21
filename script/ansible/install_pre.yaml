@@ -23,7 +23,16 @@
 #-----------------------------Debian部分----------------
     #假如是Debian8则需要升级python3.6.
     - block:
-        - name: 替换163的镜像
+        - name: 先解决更新源公钥错误问题
+          package:
+            name: "{{ item }}"   
+            state: present
+            update_cache: no
+          with_items:
+            - debian-keyring
+            - debian-archive-keyring
+          
+        - name: 替换清华大学源镜像
           copy: 
             src: "{{ src_base_dir }}/sources.list"
             dest: "/etc/apt/sources.list"
@@ -31,9 +40,7 @@
         - name: 更新源
           apt:
             update_cache: yes
-        # - name: 更新源
-        #   shell: /usr/bin/apt update && echo 1
-
+ 
         - name: 安装Python3.6依赖（Debian8）   
           package: 
             name: "{{ item }}"        
@@ -80,8 +87,7 @@
  
       - name: 创建虚拟环境目录
         shell: "/usr/bin/python3 -m venv /root/python/env"
-        args:
-          creates: "/root/python/env/bin/pip3"
+       
 
       - name: 安装python-setuptools
         apt:
