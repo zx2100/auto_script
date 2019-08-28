@@ -20,9 +20,24 @@
         state: directory
         owner: root
         group: root
-#-----------------------------Debian部分----------------
+
+    # - name: test
+    #   debug: var=ansible_facts['lsb']['major_release']
+      # "ansible_facts['lsb']": {
+      #   "codename": "xenial",
+      #   "description": "Ubuntu 16.04.1 LTS",
+      #   "id": "Ubuntu",
+      #   "major_release": "16",
+      #   "release": "16.04"
+      # ansible_distribution  ///// ansible_facts['lsb']['id']
+      # ansible_distribution_major_version  //// ansible_facts['lsb']['major_release']
+
+#-----------------------------Debian系----------------
     #假如是Debian8则需要升级python3.6.
+    # 更新python36
     - block:
+      # Debian 8的需要升级 Debian9默认就是python3.6
+      - block:
         - name: 先解决更新源公钥错误问题
           package:
             name: "{{ item }}"   
@@ -34,13 +49,13 @@
           
         - name: 替换清华大学源镜像
           copy: 
-            src: "{{ src_base_dir }}/sources.list"
+            src: "{{ src_base_dir }}/Debian8_sources.list"
             dest: "/etc/apt/sources.list"
         #更新源单独使用,。。。
         - name: 更新源
           apt:
             update_cache: yes
- 
+
         - name: 安装Python3.6依赖（Debian8）   
           package: 
             name: "{{ item }}"        
@@ -75,35 +90,104 @@
             path: "/usr/bin/python3"
             src: "/usr/local/python36/bin/python3.6"
             state: link
+        when: ansible_facts['lsb']['major_release'] == "8"
 
-      when: ansible_distribution == "Debian" and ansible_distribution_major_version == "8"
+        # Ubuntu的
+      # Ubuntu
+      - block:
+        - name: 替换源(Ubuntu 14.04)
+          copy: 
+            src: "{{ src_base_dir }}/Ubuntu14_sources.list"
+            dest: "/etc/apt/sources.list"
+          when: ansible_facts['lsb']['major_release'] == "14"
+
+        - name: 替换源(Ubuntu 16.04)
+          copy: 
+            src: "{{ src_base_dir }}/Ubuntu16_sources.list"
+            dest: "/etc/apt/sources.list"
+          when: ansible_facts['lsb']['major_release'] == "16"
+
+        - name: 替换源(Ubuntu 18.04)
+          copy: 
+            src: "{{ src_base_dir }}/Ubuntu18_sources.list"
+            dest: "/etc/apt/sources.list"
+          when: ansible_facts['lsb']['major_release'] == "18"
+
+        - name: 更新源
+          apt:
+            update_cache: yes
+
+        - name: 安装Python3.6依赖（Ubuntu）   
+          apt: 
+            name: "{{ item }}"        
+            state: present
+          loop:
+            - build-essential
+            - libncurses5-dev
+            - libncursesw5-dev
+            - libreadline6-dev
+            - libdb5.3-dev
+            - libgdbm-dev
+            - libsqlite3-dev
+            - libssl-dev
+            - libbz2-dev
+            - libexpat1-dev
+            - liblzma-dev
+            - zlib1g-dev
+            - ca-certificates
+ 
+
+        - name: 解压源码
+          unarchive:
+            src: "{{ debian8_python36_src }}"
+            dest: "{{ debian8_python36_dest }}"
+            
+        - name: 安装python36
+          shell: cd /root/file/Python-3.6.4 && ./configure --prefix=/usr/local/python36 && make && make install 
+          args:
+            creates: "/usr/local/python36/bin/python3.6"
 
 
-    - block:
+        - name: 替换掉软连接
+          file:
+            path: "/usr/bin/python3"
+            src: "/usr/local/python36/bin/python3.6"
+            state: link
+
+        - name: 删除lsb_release
+          file:
+            path: /usr/bin/lsb_release
+            state: absent 
+        when: ansible_facts['lsb']['id'] == "Ubuntu"
+      # Debian 和Ubuntu公共部分
       - name: 安装python3-venv
         apt:
           name: python3-venv
           state: present
- 
-      - name: 创建虚拟环境目录
+          # Debian 9需要安装
+        when: ansible_facts['lsb']['major_release'] == '9'
+
+      - name: 升级pip
+        shell: /usr/bin/python3 -m pip install --upgrade pip 
+        when: (ansible_facts['lsb']['id'] == 'Ubuntu' and ansible_facts['lsb']['major_release'] == '14') or (ansible_facts['lsb']['id'] == 'Ubuntu' and ansible_facts['lsb']['major_release'] == '16')
+      
+        - name: 创建虚拟环境目录
         shell: "/usr/bin/python3 -m venv /root/python/env"
-       
 
       - name: 安装python-setuptools
         apt:
           name: python-setuptools
           state: present
-          
+
       - name: Pip安装 pexpect 
         pip:
           name: pexpect
           executable: "/root/python/env/bin/pip3"
-      when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+      when: ansible_facts['lsb']['id'] == "Debian" or ansible_facts['lsb']['id'] == "Ubuntu" 
 
-
-
-
-   
+    
+    
+  
 #---------------------------------Centos部分---------------------
     - block:
       - name: 添加python36-devel依赖仓库(Centos7)
@@ -112,7 +196,7 @@
           description: home:tbi:EPEL7 (CentOS_7)
           baseurl: http://download.opensuse.org/repositories/home:/tbi:/EPEL7/CentOS_7/
           gpgcheck: no
-        when: ansible_distribution_major_version == "7"
+        when: ansible_facts['lsb']['major_release'] == "7"
 
       - name: 更新源
         package:
@@ -126,7 +210,7 @@
         with_items:
           - epel-release
           - "https://centos7.iuscommunity.org/ius-release.rpm"
-        when: ansible_distribution_major_version == "7"
+        when: ansible_facts['lsb']['major_release'] == "7"
       
       #本地安装依赖源
       - name: 复制依赖源
@@ -146,7 +230,7 @@
         with_items:
           - epel-release
           - "{{ centos6_ius_dest }}"
-        when: ansible_distribution_major_version == "6"
+        when: ansible_facts['lsb']['major_release'] == "6"
 
 
 
@@ -174,7 +258,7 @@
           path: /bin/python3.6
           src: "/usr/bin/python3.6"
           state: link 
-        when: ansible_distribution_major_version == "6"
+        when: ansible_facts['lsb']['major_release'] == "6"
 
       - name: 创建虚拟环境
         command: "/usr/bin/virtualenv -p /bin/python3.6 /root/python/env"
@@ -188,11 +272,9 @@
           executable: "/root/python/env/bin/pip"
 
 
-      when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
+      when: ansible_facts['lsb']['id'] == "CentOS" or ansible_facts['lsb']['id'] == "Red Hat Enterprise Linux"
     
 
-
-   
 #----------------------公共------------
 
     - name: 复制脚本到目标主机
@@ -202,7 +284,6 @@
         owner: root
         group: root
         mode: 0744
-
 
     - name: 执行本地密钥安装
       shell: "{{ env_source_dir }}/bin/python {{ local_key_dir }}"

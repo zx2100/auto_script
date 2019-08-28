@@ -28,7 +28,7 @@
 #     name: python3-venv
 #   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 - block:
-  - name: 创建Borgmatic虚拟环境（Debian）
+  - name: 创建Borgmatic虚拟环境（Debian/Ubuntu）
     shell: "python3 -m venv {{ borgmatic_dir }}"
     # args:
     #   creates: "{{ borgmatic_dir }}/bin/pip"
@@ -117,7 +117,7 @@
     executable: "/bin/bash"
   when: ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux"
 
-- name: 初始化数据库(Debian)
+- name: 初始化数据库(Debian/Ubuntu)
   shell: "/usr/local/bin/borgmatic --init --encryption none"
   args:
     creates: "/backup/{{ ansible_nodename }}.borg"

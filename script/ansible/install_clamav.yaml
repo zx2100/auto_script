@@ -3,7 +3,7 @@
   remote_user: root
   serial: 3
   tasks:
-    - name: 安装ClamAV依赖（Debian）   
+    - name: 安装ClamAV依赖（Debian/Ubuntu）   
       package: 
         name: "{{ item }}"        
         state: present
