@@ -54,6 +54,10 @@ def Arrange():
     success_file = open(success_filedir, mode="w")
 
 def uploadKey():
+    # 最好清空下这个文件/root/.ssh/known_hosts
+    empty_opt = open('/root/.ssh/known_hosts', "wb")
+    empty_opt.write('')
+    empty_opt.close()
     fail_file.write("*****密钥上传任务失败主机*****\n")
     success_file.write("*****密钥上传任务成功主机*****\n")
     # 整理需要copyID的主机

@@ -171,7 +171,7 @@
         shell: /usr/bin/python3 -m pip install --upgrade pip 
         when: (ansible_facts['lsb']['id'] == 'Ubuntu' and ansible_facts['lsb']['major_release'] == '14') or (ansible_facts['lsb']['id'] == 'Ubuntu' and ansible_facts['lsb']['major_release'] == '16')
       
-        - name: 创建虚拟环境目录
+      - name: 创建虚拟环境目录
         shell: "/usr/bin/python3 -m venv /root/python/env"
 
       - name: 安装python-setuptools
