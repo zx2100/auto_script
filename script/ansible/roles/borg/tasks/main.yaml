@@ -130,6 +130,7 @@
     name: "backup task"
     user: root
     hour: "1"
+    minute: "0"
     state: present  
     job: "/usr/local/bin/borgmatic -v 1"
 

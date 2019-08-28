@@ -141,6 +141,7 @@
         name: "update task"
         user: root
         hour: "1"
+        minute: "0"
         state: present  
         job: "/usr/local/clamAV/bin/freshclam"
       tags: tasks
@@ -150,6 +151,7 @@
         name: "scan task"
         user: root
         hour: "1"
+        minute: "0"
         state: present  
         job: "/usr/local/clamAV/bin/clamscan --infected -r / --remove -l /var/log/clamscan.log"
       tags: tasks
